@@ -1,7 +1,12 @@
 #Encuesta salud sexual y reproductiva
 #Para el uso de la base usuario se sugiere la consulta del cuestionario que  encontrar√° al final de este documento. Se advierte que en caso de campos en blanco, en general, los mismos se corresponden con saltos en la secuencia de preguntas. Los c√≥digos 9, 99, 999 y 9999 que en general son el valor m√°ximo de cada escala, se corresponden con datos que el encuestado no sab√?a o no quer√?a contestar.
-setwd("C:/Users/perla/Desktop/R/directorio/sexual y rep")
+library(ggplot2)
+library(plotly)
+library(shiny)
+
+setwd("C:/Users/perla/OneDrive/Documents/ssyr/data")
 datosMujeres=read.table("ENSSyR_Mujeres_BaseUsuario.txt", header=T, sep="|")
+
 datosHombres=read.table("ENSSyR_Varones_BaseUsuario.txt", header=T, sep="|")
 
 
@@ -61,7 +66,16 @@ datosHombres$VASA16_01 <- ifelse(datosHombres$VASA16_01 == 1, "Pastilla anticonc
 
 
 head(datosMujeres$MASA17_01)
-
+datosMujeres$MASA18<- ifelse(datosMujeres$MASA18 == 1, "Usted junto con la persona que tiene relaciones",
+                             ifelse(datosMujeres$MASA18 == 2, "Usted sola",
+                                    ifelse(datosMujeres$MASA18 == 3, "La persona con la que tiene relaciones",
+                                           ifelse(datosMujeres$MASA18 == 4, "Profesional de la salud", 
+                                                  ifelse(datosMujeres$MASA18 == 5, "Otros", NA)))))
+datosHombres$VASA17 <- ifelse(datosHombres$VASA17 == 1, "Usted junto con la persona con la que tiene relaciones",
+                              ifelse(datosHombres$VASA17 == 2, "Usted solo", 
+                                     ifelse(datosHombres$VASA17 == 3, "La persona con la que tiene relaciones",
+                                            ifelse(datosHombres$VASA17 == 4, "Profesional de la salud",
+                                                   ifelse(datosHombres$VASA17 == 5, "Otros", NA)))))
 
 #Ver que hacer con los NA. En la parte de casa pr√°cticamente no hay, aparecen m√°s desp. 
 datosMujeres[is.na(datosMujeres$HO02),]
@@ -128,8 +142,6 @@ datosHombres$NBI= ifelse(datosHombres$viviendaNBI == TRUE, "Tiene",
                                               ifelse(datosHombres$materialtecho == TRUE, "Tiene", "No tiene")))))
 
 
-head(datosMujeres)
-library(ggplot2)
 
 #Cantidad de NA's de las columnas.
 
@@ -142,6 +154,11 @@ datosMujeres= datosMujeres[!is.na(datosMujeres$MASA17_01),]
 datosHombres= datosHombres[!is.na(datosHombres$VASA16_01),]
 
 qplot(datosMujeres$NBI)
+
+#Clasifico sector popular seg˙n nivel educativo (!!!!!!!!!!!!!!!!!)
+datosMujeresAdult <- datosMujeres[which(datosMujeres$GRUPEDAD != 1),]
+
+datosMujeresAdult$sector <- ifelse(datosMujeresAdult$NIVEL_INSTRUCCION_AGRUPADO < 3, "Popular","Medio/Alto")
 
 #quiero sacar si llegan a la lÌnea de la pobreza
 #http://wadmin.uca.edu.ar/public/20180426/1524770671_INDIGENCIA_Y_POBREZA_INFORME_PRENSA_abril_2014.pdf
@@ -158,8 +175,8 @@ fliasH <- rbind(flia_chH,flia_shH)
 rm(list = c("flia_sh","flia_ch","flia_shH","flia_chH"))
 a = quantile(datosMujeres$CANTCOMPONENTES, c(0,0.85)) #ac√° estoy calculando los valores que llegan al 25% y 75%
 
-fliasM <- fliasM[which(fliasM$CANTCOMPONENTES <= 7),]
-fliasH <- fliasH[which(fliasH$CANTCOMPONENTES <= 7),]
+fliasM <- fliasM[which(fliasM$CANTCOMPONENTES <= 6),]
+fliasH <- fliasH[which(fliasH$CANTCOMPONENTES <= 6),]
 
 flias[which(flias$CANTCOMPONENTES == 2 & flias$RANGO_INGRESO < 5),]
 
@@ -210,30 +227,43 @@ fliasH= fliasH[!is.na(fliasH$lp),]
 #øEn que regiones hay un mayor porcentaje de encuestadas que no llega a la linea de pobreza? 
 library(ggplot2)
 
-ggplot(fliasM, aes(lp))+geom_bar()+facet_grid(.~REGION)+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) +labs(title="Distribucion de la pobreza segun region",y="Cantidad",x="Linea pobreza")
+ggplot(datosMujeres, aes(sector))+geom_bar()+facet_grid(.~REGION)+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) +labs(title="Distribucion de la pobreza segun region",y="Cantidad",x="Linea pobreza")
 ggplot(fliasH, aes(lp))+geom_bar()+facet_grid(.~REGION)+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) +labs(title="Distribucion de la pobreza segun region",y="Cantidad",x="Linea pobreza")
 
 
 #øLas mujeres pobres tienen relaciones sexuales mas jovenes? masa03 primer relacion 
 
 prM <- aggregate(MASA03 ~ lp, data=fliasM, FUN="median")
+prM$Sexo <- "Mujer"
+colnames(prM)<- c("LÌnea pobreza","Edad promedio","Sexo")
 prH <- aggregate(VASA03 ~ lp, data=fliasH, FUN="median")
+prH$Sexo <- "Hombre"
+colnames(prH)<- c("LÌnea pobreza","Edad promedio","Sexo")
 
+prM <- aggregate(MASA03 ~ sector, data=datosMujeresAdult, FUN="median")
+
+
+prHM <- rbind(prH,prM)
 #menor uso de anticonceptivos eficientes? 
 
-ggplot(fliasM,aes(MASA17_01))+geom_bar()+facet_grid(.~lp)+scale_y_continuous(limits= c(0,500))+theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+ggplot(datosMujeres,aes(MASA17_01))+geom_bar()+facet_grid(.~lp)+theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+ggplot(datosMujeresAdult,aes(MASA17_01))+geom_bar()+facet_grid(.~sector)+theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 
-ggplot(fliasH,aes(VASA16_01))+geom_bar()+facet_grid(.~lp)+scale_y_continuous(limits= c(0,500)) +theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
+ggplot(fliasH,aes(VASA16_01))+geom_bar()+facet_grid(.~lp)+scale_y_continuous(limits= c(0,500)) +theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 #decisiÛn sobre metodo anticonceptivo
 #quien
-ggplot(fliasM,aes(MASA18))+geom_bar()+facet_grid(.~lp) 
-ggplot(fliasH,aes(VASA17))+geom_bar()+facet_grid(.~lp)
+
+ggplot(datosMujeres,aes(MASA18))+geom_bar()+facet_grid(.~sector) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(datosMujeresAdult,aes(MASA18))+geom_bar()+facet_grid(.~sector) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggplot(fliasH,aes(VASA17))+geom_bar()+facet_grid(.~lp) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 
 
 #en adolescentes 
 datosMujeresA<- datosMujeres[which(datosMujeres$GRUPEDAD==1),]
-ggplot(datosMujeresA,aes(MASA17_01))+geom_bar()+facet_grid(.~REGION)
+ggplot(datosMujeres,aes(MASA17_01))+geom_bar()+facet_grid(.~GRUPEDAD) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #xq
 
@@ -245,7 +275,7 @@ ggplot(fliasH,aes(VASA18))+geom_bar()+facet_grid(.~lp)
 
 #mayor cantidad de hijxs?
 
-aggregate(MEP03 ~ lp, data=fliasM, FUN=function(x) quantile(x,0.7))
+aggregate(MEP03 ~ sector, data=datosMujeresAdult, FUN="median")
 
 
 #Agrupaciones seg˙n edad
@@ -265,7 +295,7 @@ datosHombres$VASA15 <- ifelse(datosHombres$VASA15 == 1, "Si", ifelse(datosHombre
 rangoEdadH <- datosHombres[which(datosHombres$VASA02 == 1),] 
 
 ggplot(rangoEdadH, aes(VASA07))+geom_bar()+facet_grid(.~GRUPEDAD)+ theme(axis.text.x = element_text(angle = 90, hjust = 1))+labs(title="Uso de preservativo en primera relaciÛn sexual seg˙n grupo etario",y="Cantidad",x="Linea pobreza")
-ggplot(rangoEdadH, aes(VASA15))+geom_bar()+facet_grid(.~GRUPEDAD)+ theme(axis.text.x = element_text(angle = 90, hjust = 1))+labs(title="Uso de preservativo en primera relaciÛn sexual seg˙n grupo etario",y="Cantidad",x="Linea pobreza")
+ggplot(rangoEdadH, aes(VASA15))+geom_bar()+ theme(axis.text.x = element_text(angle = 90, hjust = 1))+labs(title="Uso de preservativo en relaciones sexuales actuales",y="Cantidad",x="Linea pobreza")
 
 
 
@@ -288,31 +318,56 @@ aggregate(MASA03 ~MITS19, data= datosMujeres, FUN='median')
 aggregate(MASA03 ~MITS20, data= datosMujeres, FUN='median')
 
 
-#conocimiento sobre ESI
+#conocimiento sobre ESI. Separo en grupos de edad. 
+
+df_acM<-aggregate(cbind(MASA03, MASA12, GRUPEDAD)~ EDAD, data=datosMujeres, FUN="median",simplify=TRUE)
+colnames(df_acM)<- c("Edad","Primera relaciÛn sexual","Primer uso de anticonceptivos","Grupo etario")
+df_acM$Sexo <- c("Femenino")
+
+df_acH<-aggregate(cbind(VASA03, VASA12, GRUPEDAD)~ EDAD, data=datosHombres, FUN="median",simplify=TRUE)
+colnames(df_acH)<- c("Edad","Primera relaciÛn sexual","Primer uso de anticonceptivos","Grupo etario")
+df_acH$Sexo <- c("Masculino")
+
+df_ac <- rbind(df_acM,df_acH)
+
+graf <-ggplot(df_ac, aes(y=df_ac$"Primera relaciÛn sexual",x=df_ac$'Edad'))+geom_line()+geom_line(data = df_ac, aes(y=df_ac$"Primer uso de anticonceptivos", x=df_ac$"Edad"), color = "red")+facet_grid(Sexo~.)
+graf <- graf+scale_x_continuous(limits=c(13,50))
+ggplotly(graf)
+
+#øQue edad tenÌa c/u cuando se empezÛ a implementar la ley ESI? øEstaban en edad escolar?
+#La ley se promulgÛ en Octubre 2006. Asumo que en el 2007/2008 ya deberÌa estar funcionando.
+#La encuesta es de 2013. Le resto seis aÒos a las edades
+
+datosMujeres$"Edad ESI" <- datosMujeres$EDAD-6
+df_ac$"Edad ESI" <- df_ac$"Edad"-6
+#filtro por quienes estaban en edad escolar a cuando se implementÛ la ESI. 
+
+df_ac$ESI <- ifelse (df_ac$"Edad ESI"> 17, "No tuvo", "Tuvo")
+
+graf1 <- ggplot(df_ac,aes(y=df_ac$"Primera relaciÛn sexual", x=df_ac$"Edad"))+geom_line(aes(color=df_ac$"ESI"))+geom_line(data=df_ac, aes(y=df_ac$"Primer uso de anticonceptivos",x=df_ac$"Edad", color=df_ac$ESI))+facet_grid(Sexo~.)
+graf1 <- graf1+scale_x_continuous(limits=c(13,50))
+ggplotly(graf1)
+
+#seg˙n sectores. øLa ESI cerrÛ alguna brecha entre conocimiento de educaciÛn sexual de sectores populares?
 
 
+datosMujeresAdultP <- datosMujeresAdult[which(datosMujeresAdult$sector == "Popular"),]
+
+datosMujeresAdultMA <- datosMujeresAdult[which(datosMujeresAdult$sector == "Medio/Alto"),]
+
+dmAP <- aggregate(cbind(MASA03,MASA12,GRUPEDAD)~EDAD, data=datosMujeresAdultP, FUN= "median")
+
+dmMA <- aggregate(cbind(MASA03,MASA12,GRUPEDAD)~EDAD, data=datosMujeresAdultMA, FUN= "median")
+
+ggplot(dmAP, aes(y=MASA03,x=EDAD))+geom_line()+geom_line(data=dmAP, aes(x=EDAD, y=MASA12), color="red")
+ggplot(dmMA, aes(y=MASA03, x=EDAD))+geom_line()+geom_line(data=dmMA, aes(x=EDAD, y=MASA12), color="red")
+
+# conocimiento de mÈtodos anticonceptivos
+
+datosMujeres$"Edad ESI" <- datosMujeres$"Edad"-6
+#filtro por quienes estaban en edad escolar a cuando se implementÛ la ESI. 
+
+datosMujeres$ESI <- ifelse (datosMujeres$"Edad ESI"> 17, "No tuvo", "Tuvo")
 
 
-
-#saco NA's de MEP03 (cantidad de hijxs nacidxs), son 1879, todavia me quedan m√°s de 3000 muestras
-summary(datosMujeres$MEP03)
-flias= flias[!is.na(flias$MEP03),]
-#a = quantile(datosMujeres$MEP03, c(0.25,0.75)) #ac√° estoy calculando los valores que llegan al 25% y 75%
-#maximo= a[2]+1.5*a[2] #ac√° vuela todo lo que est√© por encima del valor
-
-#set.seed(1234)
-#muestra <- floor(nrow(flias[which(flias$lp == "Llega"),])*0.79)
-#reduccion <- sample(nrow(flias), muestra, replace=F)
-
-#basereduccion <- flias[reduccion,]
-
-
-
-qplot(datosMujeres$MEP03,data=datosMujeres,geom='histogram',facets = .~REGION, binwidth=0.5) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-ggplot(flias, aes(MEP13))+geom_bar(aes(fill=lp, position="stack"))+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title= "Deseo de la pareja de tener hijxs segun sector economico",x= "Respuesta", y= "Cantidad mujeres")+scale_x_continuous(limits = c(0, 4))
-ggplot(flias, aes(MASA18))+geom_bar(aes(fill=lp, position="stack"))+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title= "Deseo de la pareja de tener hijxs segun sector economico",x= "Respuesta", y= "Cantidad mujeres")+scale_x_continuous(limits = c(0, 5))
-ggplot(flias, aes(MASA19))+geom_bar(aes(fill=lp, position="stack"))+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title= "Deseo de la pareja de tener hijxs segun sector economico",x= "Respuesta", y= "Cantidad mujeres")+scale_x_continuous(limits = c(0, 10))
-ggplot(flias, aes(MASA17_02_17))+geom_bar(aes(fill=lp, position="stack"))+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title= "Deseo de la pareja de tener hijxs segun sector economico",x= "Respuesta", y= "Cantidad mujeres")+scale_x_continuous(limits = c(0, 2))
-ggplot(flias, aes(MASA09))+geom_bar(aes(fill=lp, position="stack"))+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(title= "Deseo de la pareja de tener hijxs segun sector economico",x= "Respuesta", y= "Cantidad mujeres")+scale_x_continuous(limits = c(0, 2))
-
+ggplot(datosMujeres, aes(MASA01_06))+geom_bar(aes(fill=datosMujeres$ESI))
