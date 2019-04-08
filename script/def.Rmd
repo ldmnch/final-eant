@@ -134,4 +134,34 @@ plot_ly(datosMujeres, labels = ~MEP14, values = , type = 'pie') %>%
 
 ```
 
-¿Las mujeres religiosas tienen más deseos de tener hijos? 
+¿Las mujeres religiosas tienen más deseos de tener hijos? (=las que tienen embarazos no deseados son "trolas"?/¿?)
+datosMujeres$MITS20 <- ifelse(datosMujeres$MITS20 == 1, "Católica",
+                              ifelse(datosMujeres$MITS20 == 2, "Evangélica", 
+                                     ifelse(datosMujeres$MITS20 == 3, "Judía",
+                                            ifelse(datosMujeres$MITS20 == 4, "Testigo de Jeohvá",
+                                                   ifelse(datosMujeres$MITS20 == 5, "Mormón",
+                                                          ifelse(datosMujeres$MITS20==7, "Adventista", "Otro"))))))
+
+
+```{r}
+r1 <- nrow(datosMujeres[datosMujeres$MITS19 == 1,])
+r2 <- nrow(datosMujeres[datosMujeres$MITS19 == 2,])
+
+pr_relig <- c("Religiosa","Atea")
+
+end_r1 <- nrow(datosMujeres[datosMujeres$MITS19==1 & datosMujeres$MEP11== "Embarazo no deseado",])
+end_r2 <- nrow(datosMujeres[datosMujeres$MITS19==2 & datosMujeres$MEP11== "Embarazo no deseado",])
+
+
+END_relig <-  as.data.frame(cbind(c(r1,r2)))
+END_relig$cant_END <- c(end_r1,end_r2)
+END_relig$categoria <- pr_relig
+END_relig$tasa <- round(END_relig[2]*100/END_relig[1],2)
+colnames(END_relig)<-c("Total muestra","Cantidad END","Categoria","Tasa")
+
+plot_ly(END_relig, labels = ~Categoria, values = ~Tasa, type = 'pie') %>%
+  layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+```
+
