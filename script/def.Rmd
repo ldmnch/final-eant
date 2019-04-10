@@ -11,7 +11,6 @@ library(plotly)
 library(shiny)
 rm(list = ls())
 ```
-pobres, trolas y maleducadas
 
 ```{r}
 setwd("C:/Users/perla/OneDrive/Documents/ssyr/data")
@@ -41,14 +40,14 @@ head(datosMujeres$MASA17_01)
 datosMujeres$GRUPEDAD <- ifelse(datosMujeres$GRUPEDAD==1, "14 a 19 años",
                                 ifelse(datosMujeres$GRUPEDAD == 2, "20 a 29 años",
                                        ifelse(datosMujeres$GRUPEDAD==3, "30 a 39 años",
-                                              ifelse(datosMujeres$GRUPEDAD == 4, "40 a 49 años","50 a 59 aÃ±os"))))
+                                              ifelse(datosMujeres$GRUPEDAD == 4, "40 a 49 años","50 a 59 años"))))
 
 
 ```
 
 Clasifico sector popular según nivel educativo
 ```{r}
-datosMujeresAdult <- datosMujeres[which(datosMujeres$GRUPEDAD != 1),]
+datosMujeresAdult <- datosMujeres[which(datosMujeres$GRUPEDAD != "14 a 19 años"),]
 
 datosMujeresAdult$sector <- ifelse(datosMujeresAdult$NIVEL_INSTRUCCION_AGRUPADO < 3, "Popular","Medio/Alto")
 datosMujeresAdult= datosMujeresAdult[!is.na(datosMujeresAdult$MEP11),]
@@ -86,6 +85,7 @@ agrup <- c("13 a 19 años","20 a 29 años","30 a 39 años","40 a 49 años")
 edades <- c(end_1,end_2,end_3,end_4)
 
 end_grupE <- as.data.frame(cbind(agrup,edades,totalEND))
+write.table(end_grupE,file="END_GRUPEDAD.csv", sep=",",col.names=NA)
 
 p <- plot_ly(end_grupE, labels = ~agrup, values = ~edades, type = 'pie') %>%
   layout(title = "¿Los embarazos no deseados son solo una problemática adolescente?",
@@ -119,6 +119,13 @@ plot_ly(embarazosnd_sector, labels = ~sector, values = ~tasa, type = 'pie') %>%
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 
+#¿Qué porcentaje de cada sector usaba anticonceptivos? 
+
+datosMujeresAdult_corte <- datosMujeresAdult[which(datosMujeresAdult$MEP11 == "Embarazo no deseado"),]
+
+
+ggplot(datosMujeresAdult_corte, aes(sector))+geom_bar(aes(fill=factor(MEP14)))
+
 ```
 
 ¿Que porcentaje de las mujeres que tuvieron un embarazo no deseado utilizaban anticonceptivos? 
@@ -126,11 +133,14 @@ plot_ly(embarazosnd_sector, labels = ~sector, values = ~tasa, type = 'pie') %>%
 ```{r}
 g3<-ggplot(df_corte,aes(x="",y=MEP11, fill=factor(MEP14)))+geom_bar(width=1,stat="identity")
 g3<- g3 + coord_polar("y", start=0)
+g3
 
-plot_ly(datosMujeres, labels = ~MEP14, values = , type = 'pie') %>%
-  layout(title = "¿Es suficiente educar sobre métodos anticonceptivos para prevenir embarazos no deseados?",
-         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+#xq
+
+#df_corte= df_corte[!(df_corte$MEP13== 9),]
+
+
+#ggplot(df_corte, aes(x=factor(MEP14)))+geom_bar(aes(fill=factor(MEP13)))
 
 ```
 
@@ -156,12 +166,22 @@ end_r2 <- nrow(datosMujeres[datosMujeres$MITS19==2 & datosMujeres$MEP11== "Embar
 END_relig <-  as.data.frame(cbind(c(r1,r2)))
 END_relig$cant_END <- c(end_r1,end_r2)
 END_relig$categoria <- pr_relig
-END_relig$tasa <- round(END_relig[2]*100/END_relig[1],2)
+END_relig$tasa <- round(END_relig$cant_END*100/END_relig$V1,2)
 colnames(END_relig)<-c("Total muestra","Cantidad END","Categoria","Tasa")
 
 plot_ly(END_relig, labels = ~Categoria, values = ~Tasa, type = 'pie') %>%
   layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
+
+
+
+#al interior de las religiones
+
+re1 <- nrow(datosMujeres[datosMujeres$MITS20== "Católica",])
+re2 <- nrow(datosMujeres[datosMujeres$MITS20== "Evangélica",])
+
+end_re1 <- nrow(datosMujeres[datosMujeres$MITS20 == "Católica" & datosMujeres$MEP11 == "Embarazo no deseado",])
+end_re2 <- nrow(datosMujeres[datosMujeres$MITS20 == "Evangélica" & datosMujeres$MEP11 == "Embarazo no deseado",])
 ```
 
