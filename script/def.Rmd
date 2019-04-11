@@ -124,7 +124,8 @@ plot_ly(embarazosnd_sector, labels = ~sector, values = ~tasa, type = 'pie') %>%
 datosMujeresAdult_corte <- datosMujeresAdult[which(datosMujeresAdult$MEP11 == "Embarazo no deseado"),]
 
 
-ggplot(datosMujeresAdult_corte, aes(sector))+geom_bar(aes(fill=factor(MEP14)))
+g4<-ggplot(datosMujeresAdult_corte, aes(sector))+geom_bar(aes(fill=factor(MEP14)))
+
 
 ```
 
