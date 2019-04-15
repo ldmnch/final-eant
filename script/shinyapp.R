@@ -20,8 +20,12 @@ ui=fluidPage (
   titlePanel("Trabajo final EANT"),
   tabsetPanel(
     tabPanel(strong('Introducción'),
-             textOutput('intro')),
-    tabPanel(strong('Gráficos')),
+             p(h5("En los últimos años se puso en la mesa el debate sobre la despenalización del aborto y la incidencia que tendría en el país. Las mujeres de sectores populares de la población, frente un embarazo no deseado, recurren a un aborto clandestino en condiciones que probablemente les conlleven complicaciones médicas o la muerte. Que el Estado sea garante de un aborto en condiciones seguras y de sanidad se corresponde a la obligación de este de garantizar el derecho a la salud de toda la población.")),
+             p(h5("Ahora, cuando unx habla de un embarazo no deseado, generalmente se imagina el caso de una adolescente (que no se cuidó a la hora de tener relaciones), que es demasiado joven para ser madre y no tiene los recursos para criar un hijo. Una mujer adulta, con el capital económico suficiente para criar un hijo, está lista para ser madre y por lo tanto debería serlo. El objetivo de este trabajo es mostrar que esta ideal de maternidad impuesto a las mujeres no se corresponde a la realidad.")),
+             p(h5("Los datos fueron tomados de la Encuesta de Salud Sexual y Reproductiva del Ministerio de Salud realizada en 2013. La pregunta clave fue: [Respecto al último hijo nacido vivo]")),
+             p(h5(strong("Cuando quedó embarazada, ¿quería tener ese hijo, quería esperar más tiempo o no quería tener ese hijo? ")))
+             ),
+    tabPanel(strong('Gráficos'),
              navlistPanel('Analisis según:',
                           tabPanel('Edad',
                                    p(strong("Acá va a ir texto")),
@@ -39,10 +43,10 @@ ui=fluidPage (
                           tabPanel('Religión',
                                    plotlyOutput('grafRelig')
                           )
-             )
+             ))
     )
  
-  ))
+  )
 
 
 
@@ -80,17 +84,9 @@ server=function(input,output){
   })
   
   
-  # 6.7) Vamos a realizar una tabla por lo cual se utiliza la funcion renderDataTable
-  # 6.8) El output donde se genera esta tabla en la UI se denomina "TablaCriticas"
-  # 6.9) El grafico se debe filtrar por el combo que ingresa como input y se denomina "SelectCritica"
-  
   output$tablaEdad=renderTable({END_EDAD})
   output$tablaClase=renderTable({END_SECTOR})
-  output$intro=renderText({'En los últimos años se puso en la mesa el debate sobre la despenalización del aborto y la incidencia que tendría en el país. Las mujeres de sectores populares de la población, frente un embarazo no deseado, recurren a un aborto clandestino en condiciones que probablemente les conlleven complicaciones médicas o la muerte. Que el Estado sea garante de un aborto en condiciones seguras y de sanidad se corresponde a la obligación de este de garantizar el derecho a la salud de toda la población. 
-  
-Ahora, cuando unx habla de un embarazo no deseado, generalmente se imagina el caso de una adolescente que es demasiado joven para ser madre y no tiene los recursos para criar un hijo. Una mujer adulta, 
-'})
-  
+
   
   # 6.15) El ultimo paso es el boton que escribe el archivo!
 
