@@ -85,7 +85,6 @@ agrup <- c("13 a 19 años","20 a 29 años","30 a 39 años","40 a 49 años")
 edades <- c(end_1,end_2,end_3,end_4)
 
 end_grupE <- as.data.frame(cbind(agrup,edades,totalEND))
-write.table(end_grupE,file="END_GRUPEDAD.csv", sep=",",col.names=NA)
 
 p <- plot_ly(end_grupE, labels = ~agrup, values = ~edades, type = 'pie') %>%
   layout(title = "¿Los embarazos no deseados son solo una problemática adolescente?",
@@ -124,8 +123,7 @@ plot_ly(embarazosnd_sector, labels = ~sector, values = ~tasa, type = 'pie') %>%
 datosMujeresAdult_corte <- datosMujeresAdult[which(datosMujeresAdult$MEP11 == "Embarazo no deseado"),]
 
 
-g4<-ggplot(datosMujeresAdult_corte, aes(sector))+geom_bar(aes(fill=factor(MEP14)))
-
+g4<-ggplot(datosMujeresAdult_corte, aes(sector))+geom_bar(aes(fill=factor(MEP14)),position="fill")
 
 ```
 
@@ -179,10 +177,29 @@ plot_ly(END_relig, labels = ~Categoria, values = ~Tasa, type = 'pie') %>%
 
 #al interior de las religiones
 
+
+
+
+
 re1 <- nrow(datosMujeres[datosMujeres$MITS20== "Católica",])
 re2 <- nrow(datosMujeres[datosMujeres$MITS20== "Evangélica",])
+re3 <- nrow(datosMujeres[datosMujeres$MITS20 == "Judía",])
+cant_religs<-c(re1,re2,re3)
 
 end_re1 <- nrow(datosMujeres[datosMujeres$MITS20 == "Católica" & datosMujeres$MEP11 == "Embarazo no deseado",])
 end_re2 <- nrow(datosMujeres[datosMujeres$MITS20 == "Evangélica" & datosMujeres$MEP11 == "Embarazo no deseado",])
+end_re3 <- nrow(datosMujeres[datosMujeres$MITS20 == "Judía" & datosMujeres$MEP11 == "Embarazo no deseado",])
+religs_end<-c(end_re1,end_re2,end_re3)
+
+
+```
+guardo las tablas creadas
+```{r}
+write.table(end_grupE,file="END_GRUPEDAD.csv", sep=",",col.names=NA)
+write.table(embarazosnd_sector,file="END_SECTOR.csv",sep=",",col.names=NA)
+write.table(datosMujeresAdult_corte,file="END_ADULT.csv",sep=",",col.names=NA)
+write.table(df_corte,file="END.csv",sep=",",col.names=NA)
+write.table(END_relig,file="END_RELIG.csv",sep=",",col.names=NA)
+
 ```
 
