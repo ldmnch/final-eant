@@ -5,6 +5,14 @@ editor_options:
   chunk_output_type: inline
 ---
 
+-ficha tecnica
+preguntas 
+shiny 
+conclusiones
+como sigo
+
+graficos de barras 
+
 ```{r}
 library(ggplot2)
 library(plotly)
@@ -65,26 +73,45 @@ totalEND<- nrow(datosMujeres[datosMujeres$MEP11 == "Embarazo no deseado",])
 ¿Las adolescentes son las q tienen mas embarazos no deseados? Me fijo porcentajes de edad a la q se quedaron embarazadas sin desearlo. 
 
 ```{r}
+
 df_corte$canta <- 2013-df_corte$MEP10
 summary(df_corte$canta)
 df_corte$edadUH <- df_corte$EDAD-df_corte$canta
 summary(df_corte$edadUH)
 
+coso<- aggregate(data=df_corte,edadUH~GRUPEDAD, FUN = "median")
+datosMujeres$edadUH <- ifelse(datosMujeres$GRUPEDAD == "14 a 19 años", 17,
+                              ifelse(datosMujeres$GRUPEDAD=="20 a 29 años",20,
+                                     ifelse(datosMujeres$GRUPEDAD=="30 a 39 años", 28,31)))
 df_corte$GRUPEDAD_UH <- ifelse(df_corte$edadUH<20,"13 a 19 años",
                                ifelse(df_corte$edadUH<30, "20 a 29 años",
                                       ifelse(df_corte$edadUH<40,"30 a 39 años",
                                              ifelse(df_corte$edadUH<50,"40 a 49 años"))))
 
+datosMujeres$GRUPEDAD_UH <- ifelse(datosMujeres$edadUH<20,"13 a 19 años",
+                               ifelse(datosMujeres$edadUH<30, "20 a 29 años",
+                                      ifelse(datosMujeres$edadUH<40,"30 a 39 años",
+                                             ifelse(datosMujeres$edadUH<50,"40 a 49 años"))))
 
+ED <- datosMujeres[which (datosMujeres$MEP11=="Embarazo deseado"),]
+
+c
 end_1 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="13 a 19 años",])
 end_2 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="20 a 29 años",])
 end_3 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="30 a 39 años",])
 end_4 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="40 a 49 años",])
 
-agrup <- c("13 a 19 años","20 a 29 años","30 a 39 años","40 a 49 años")
-edades <- c(end_1,end_2,end_3,end_4)
+ed_1 <- nrow(ED[ED$GRUPEDAD_UH=="13 a 19 años",])
+ed_2 <- nrow(ED[ED$GRUPEDAD_UH=="20 a 29 años",])
+ed_3 <- nrow(ED[ED$GRUPEDAD_UH=="30 a 39 años",])
+ed_4 <- nrow(ED[ED$GRUPEDAD_UH=="40 a 49 años",])
 
-end_grupE <- as.data.frame(cbind(agrup,edades,totalEND))
+
+agrup <- c("13 a 19 años","20 a 29 años","30 a 39 años","40 a 49 años")
+cant_end <- c(end_1,end_2,end_3,end_4)
+
+end_grupE <- as.data.frame(cbind(agrup,cant_end,totalEND))
+end_grupE$cant_end<-c(ed_1,ed_2,ed_3,ed_4)
 
 p <- plot_ly(end_grupE, labels = ~agrup, values = ~edades, type = 'pie') %>%
   layout(title = "¿Los embarazos no deseados son solo una problemática adolescente?",
@@ -133,6 +160,12 @@ g4<-ggplot(datosMujeresAdult_corte, aes(sector))+geom_bar(aes(fill=factor(MEP14)
 g3<-ggplot(df_corte,aes(x="",y=MEP11, fill=factor(MEP14)))+geom_bar(width=1,stat="identity")
 g3<- g3 + coord_polar("y", start=0)
 g3
+
+ua <- nrow(df_corte[df_corte$MEP14 == 1,])
+sua<- nrow(df_corte[df_corte$MEP14 == 2,])
+
+end_ua <- as.data.frame(rbind(ua,sua))
+end_ua$total <- totalEND
 
 #xq
 
@@ -200,6 +233,17 @@ write.table(embarazosnd_sector,file="END_SECTOR.csv",sep=",",col.names=NA)
 write.table(datosMujeresAdult_corte,file="END_ADULT.csv",sep=",",col.names=NA)
 write.table(df_corte,file="END.csv",sep=",",col.names=NA)
 write.table(END_relig,file="END_RELIG.csv",sep=",",col.names=NA)
+
+```
+
+
+```{r}
+write.table(end_ua,file="END_UA.csv",sep=",",col.names=NA)
+
+```
+
+```{r}
+write.table(datosMujeresAdult_corte,file="datosMujeresAdult.csv",sep=",",col.names=NA)
 
 ```
 

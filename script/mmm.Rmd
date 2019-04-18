@@ -1,0 +1,228 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+library(ggplot2)
+library(plotly)
+library(shiny)
+rm(list = ls())
+```
+
+```{r}
+setwd("C:/Users/perla/OneDrive/Documents/ssyr/data")
+datosMujeres=read.table("ENSSyR_Mujeres_BaseUsuario.txt", header=T, sep="|")
+datosMujeres$MEP11 <- ifelse (datosMujeres$MEP11== 1, "Embarazo deseado","Embarazo no deseado" )
+datosMujeres= datosMujeres[!is.na(datosMujeres$MEP11),]
+
+df_corte <- datosMujeres[which (datosMujeres$MEP11=="Embarazo no deseado"),]
+
+
+datosMujeres$MITS20 <- ifelse(datosMujeres$MITS20 == 1, "Católica",
+                              ifelse(datosMujeres$MITS20 == 2, "Evangélica", 
+                                     ifelse(datosMujeres$MITS20 == 3, "Judía",
+                                            ifelse(datosMujeres$MITS20 == 4, "Testigo de Jeohvá",
+                                                   ifelse(datosMujeres$MITS20 == 5, "Mormón",
+                                                          ifelse(datosMujeres$MITS20==7, "Adventista", "Otro"))))))
+
+
+
+datosMujeres$MEP05 <- ifelse(datosMujeres$MEP05 == 1, "Si",
+                             ifelse(datosMujeres$MEP05 == 2, "No", NA))
+
+datosMujeres$MEP14 <- ifelse(datosMujeres$MEP14 == 1, "Si",
+                             ifelse(datosMujeres$MEP14 == 2, "No", NA))
+
+head(datosMujeres$MASA17_01)
+datosMujeres$GRUPEDAD <- ifelse(datosMujeres$GRUPEDAD==1, "14 a 19 años",
+                                ifelse(datosMujeres$GRUPEDAD == 2, "20 a 29 años",
+                                       ifelse(datosMujeres$GRUPEDAD==3, "30 a 39 años",
+                                              ifelse(datosMujeres$GRUPEDAD == 4, "40 a 49 años","50 a 59 años"))))
+
+
+```
+
+Clasifico sector popular según nivel educativo
+```{r}
+datosMujeresAdult <- datosMujeres[which(datosMujeres$GRUPEDAD != "14 a 19 años"),]
+
+datosMujeresAdult$sector <- ifelse(datosMujeresAdult$NIVEL_INSTRUCCION_AGRUPADO < 3, "Popular","Medio/Alto")
+datosMujeresAdult= datosMujeresAdult[!is.na(datosMujeresAdult$MEP11),]
+
+
+```
+
+
+Cantidad
+```{r}
+totalEND<- nrow(datosMujeres[datosMujeres$MEP11 == "Embarazo no deseado",])
+
+```
+
+¿Las adolescentes son las q tienen mas embarazos no deseados? Me fijo porcentajes de edad a la q se quedaron embarazadas sin desearlo. 
+
+```{r}
+
+df_corte$canta <- 2013-df_corte$MEP10
+summary(df_corte$canta)
+df_corte$edadUH <- df_corte$EDAD-df_corte$canta
+summary(df_corte$edadUH)
+
+coso<- aggregate(data=df_corte,edadUH~GRUPEDAD, FUN = "median")
+datosMujeres$edadUH <- ifelse(datosMujeres$GRUPEDAD == "14 a 19 años", 17,
+                              ifelse(datosMujeres$GRUPEDAD=="20 a 29 años",20,
+                                     ifelse(datosMujeres$GRUPEDAD=="30 a 39 años", 28,31)))
+df_corte$GRUPEDAD_UH <- ifelse(df_corte$edadUH<20,"13 a 19 años",
+                               ifelse(df_corte$edadUH<30, "20 a 29 años",
+                                      ifelse(df_corte$edadUH<40,"30 a 39 años",
+                                             ifelse(df_corte$edadUH<50,"40 a 49 años"))))
+
+datosMujeres$GRUPEDAD_UH <- ifelse(datosMujeres$edadUH<20,"13 a 19 años",
+                               ifelse(datosMujeres$edadUH<30, "20 a 29 años",
+                                      ifelse(datosMujeres$edadUH<40,"30 a 39 años",
+                                             ifelse(datosMujeres$edadUH<50,"40 a 49 años"))))
+
+ED <- datosMujeres[which (datosMujeres$MEP11=="Embarazo deseado"),]
+
+end_1 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="13 a 19 años",])
+end_2 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="20 a 29 años",])
+end_3 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="30 a 39 años",])
+end_4 <- nrow(df_corte[df_corte$GRUPEDAD_UH=="40 a 49 años",])
+
+ed_1 <- nrow(ED[ED$GRUPEDAD_UH=="13 a 19 años",])
+ed_2 <- nrow(ED[ED$GRUPEDAD_UH=="20 a 29 años",])
+ed_3 <- nrow(ED[ED$GRUPEDAD_UH=="30 a 39 años",])
+ed_4 <- nrow(ED[ED$GRUPEDAD_UH=="40 a 49 años",])
+
+
+agrup <- c("13 a 19 años","20 a 29 años","30 a 39 años","40 a 49 años")
+cant_end <- c(end_1,end_2,end_3,end_4)
+cant_ed<-c(ed_1,ed_2,ed_3,ed_4)
+
+end_grupE <- as.data.frame(cbind(agrup,cant_end,cant_ed,totalEND))
+
+end_grupE$cant_end <- as.numeric(cant_end)
+
+end_grupE$total <- cant_end+cant_ed
+end_grupE$tasa <- round((end_grupE$cant_end*100)/end_grupE$total,2)
+
+p <- plot_ly(end_grupE, labels = ~agrup, values = ~edades, type = 'pie') %>%
+  layout(title = "¿Los embarazos no deseados son solo una problemática adolescente?",
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+```
+
+¿Los embarazos no deseados son una problemática de mujeres pobres? ¿Se puede atribuir solo a la falta de educación? 
+
+```{r}
+s1 <- nrow(datosMujeresAdult[datosMujeresAdult$sector == "Medio/Alto",])
+s2 <- nrow(datosMujeresAdult[datosMujeresAdult$sector == "Popular",])
+
+END_S_1 <- nrow(datosMujeres[datosMujeresAdult$sector == "Medio/Alto" & datosMujeresAdult$MEP11== "Embarazo no deseado",])
+END_S_2 <- nrow(datosMujeres[datosMujeresAdult$sector == "Popular" & datosMujeresAdult$MEP11== "Embarazo no deseado",])
+
+embarazosnd_sector <- as.data.frame(rbind(s1,s2)) 
+colnames(embarazosnd_sector)<-c("Cantidad")
+embarazosnd_sector$Cant_END <- c(END_S_1,END_S_2)
+embarazosnd_sector$tasa <- round(embarazosnd_sector$Cant_END*100/embarazosnd_sector$Cantidad,2)
+embarazosnd_sector$total <- c(100)
+embarazosnd_sector$sector <- c("Medio/Alto","Popular")
+
+g2<-ggplot(embarazosnd_sector, aes(x="", y=tasa, fill=sector))+geom_bar(width=1,stat="identity")+coord_polar("y", start=0)
+
+
+plot_ly(embarazosnd_sector, labels = ~sector, values = ~tasa, type = 'pie') %>%
+  layout(title = "¿Los embarazos no deseados son solo una problemática de mujeres pobres?",
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+
+#¿Qué porcentaje de cada sector usaba anticonceptivos? 
+
+datosMujeresAdult_corte <- datosMujeresAdult[which(datosMujeresAdult$MEP11 == "Embarazo no deseado"),]
+
+
+g4<-ggplot(datosMujeresAdult_corte, aes(sector))+geom_bar(aes(fill=factor(MEP14)),position="fill")
+
+```
+
+¿Que porcentaje de las mujeres que tuvieron un embarazo no deseado utilizaban anticonceptivos? 
+
+```{r}
+g3<-ggplot(df_corte,aes(x="",y=MEP11, fill=factor(MEP14)))+geom_bar(width=1,stat="identity")
+g3<- g3 + coord_polar("y", start=0)
+g3
+
+#xq
+
+#df_corte= df_corte[!(df_corte$MEP13== 9),]
+
+
+#ggplot(df_corte, aes(x=factor(MEP14)))+geom_bar(aes(fill=factor(MEP13)))
+
+```
+
+¿Las mujeres religiosas tienen más deseos de tener hijos? (=las que tienen embarazos no deseados son "trolas"?/¿?)
+datosMujeres$MITS20 <- ifelse(datosMujeres$MITS20 == 1, "Católica",
+                              ifelse(datosMujeres$MITS20 == 2, "Evangélica", 
+                                     ifelse(datosMujeres$MITS20 == 3, "Judía",
+                                            ifelse(datosMujeres$MITS20 == 4, "Testigo de Jeohvá",
+                                                   ifelse(datosMujeres$MITS20 == 5, "Mormón",
+                                                          ifelse(datosMujeres$MITS20==7, "Adventista", "Otro"))))))
+
+
+```{r}
+r1 <- nrow(datosMujeres[datosMujeres$MITS19 == 1,])
+r2 <- nrow(datosMujeres[datosMujeres$MITS19 == 2,])
+
+pr_relig <- c("Religiosa","Atea")
+
+end_r1 <- nrow(datosMujeres[datosMujeres$MITS19==1 & datosMujeres$MEP11== "Embarazo no deseado",])
+end_r2 <- nrow(datosMujeres[datosMujeres$MITS19==2 & datosMujeres$MEP11== "Embarazo no deseado",])
+
+
+END_relig <-  as.data.frame(cbind(c(r1,r2)))
+END_relig$cant_END <- c(end_r1,end_r2)
+END_relig$categoria <- pr_relig
+END_relig$tasa <- round(END_relig$cant_END*100/END_relig$V1,2)
+colnames(END_relig)<-c("Total muestra","Cantidad END","Categoria","Tasa")
+
+plot_ly(END_relig, labels = ~Categoria, values = ~Tasa, type = 'pie') %>%
+  layout(xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+
+
+
+#al interior de las religiones
+
+
+
+
+
+re1 <- nrow(datosMujeres[datosMujeres$MITS20== "Católica",])
+re2 <- nrow(datosMujeres[datosMujeres$MITS20== "Evangélica",])
+re3 <- nrow(datosMujeres[datosMujeres$MITS20 == "Judía",])
+cant_religs<-c(re1,re2,re3)
+
+end_re1 <- nrow(datosMujeres[datosMujeres$MITS20 == "Católica" & datosMujeres$MEP11 == "Embarazo no deseado",])
+end_re2 <- nrow(datosMujeres[datosMujeres$MITS20 == "Evangélica" & datosMujeres$MEP11 == "Embarazo no deseado",])
+end_re3 <- nrow(datosMujeres[datosMujeres$MITS20 == "Judía" & datosMujeres$MEP11 == "Embarazo no deseado",])
+religs_end<-c(end_re1,end_re2,end_re3)
+
+
+```
+guardo las tablas creadas
+```{r}
+write.table(end_grupE,file="END_GRUPEDAD.csv", sep=",",col.names=NA)
+write.table(embarazosnd_sector,file="END_SECTOR.csv",sep=",",col.names=NA)
+write.table(datosMujeresAdult_corte,file="END_ADULT.csv",sep=",",col.names=NA)
+write.table(df_corte,file="END.csv",sep=",",col.names=NA)
+write.table(END_relig,file="END_RELIG.csv",sep=",",col.names=NA)
+
+```
+
