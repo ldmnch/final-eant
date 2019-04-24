@@ -222,8 +222,21 @@ cant_religs<-c(re1,re2,re3)
 end_re1 <- nrow(datosMujeres[datosMujeres$MITS20 == "Católica" & datosMujeres$MEP11 == "Embarazo no deseado",])
 end_re2 <- nrow(datosMujeres[datosMujeres$MITS20 == "Evangélica" & datosMujeres$MEP11 == "Embarazo no deseado",])
 end_re3 <- nrow(datosMujeres[datosMujeres$MITS20 == "Judía" & datosMujeres$MEP11 == "Embarazo no deseado",])
-religs_end<-c(end_re1,end_re2,end_re3)
+religs_end<-as.data.frame(c(end_re1,end_re2))
+colnames(religs_end)<-c("Cant_END")
+religs_end$religion <- c("Católica","Evangélica")
+ateas<-c(end_r2,"Atea")
 
+cant_cat<-nrow(datosMujeres[datosMujeres$MITS20 == "Católica",])
+cant_evg<- nrow(datosMujeres[datosMujeres$MITS20 == "Evangélica",])
+
+
+religs_end<-as.data.frame(rbind(religs_end,ateas))
+religs_end$cant_total <- c(cant_cat,cant_evg,r2)
+
+religs_end$Cant_END <- as.numeric(religs_end$Cant_END)
+
+religs_end$tasa <- round(religs_end$Cant_END*100/religs_end$cant_total,2)
 
 ```
 guardo las tablas creadas
@@ -244,6 +257,11 @@ write.table(end_ua,file="END_UA.csv",sep=",",col.names=NA)
 
 ```{r}
 write.table(datosMujeresAdult_corte,file="datosMujeresAdult.csv",sep=",",col.names=NA)
+
+```
+
+```{r}
+write.table(religs_end,file="END_R_E.csv",sep=",",col.names=NA)
 
 ```
 
