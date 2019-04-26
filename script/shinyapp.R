@@ -35,11 +35,12 @@ ui=fluidPage (
   titlePanel("Trabajo final EANT"),
   tabsetPanel(
     tabPanel(strong('Ficha Técnica'),
-             p(h4('Los datos fueron tomados de la Encuesta de Salud Sexual y Reproductiva del Ministerio de Salud realizada en 2013.')),
-             a(h4(href="https://www.indec.gov.ar/bases-de-datos.asp?solapa=2","En este link se encuentran las bases de datos y documentos metodológicos")),
-             p(h4('Usé la base de datos de mujeres, que recoge información acerca de la salud sexual y reproductiva de 5092 mujeres entre 13 a 49 años en centros urbanos de 2.000 o más habitantes.')),
-             p(h4('La encuesta recoge por un lado datos demográficos de las mujeres entrevistadas: edad, tipo de hogar y características de la vivienda, máximo nivel educativo, situación conyugal, situación laboral, etc. ')),
-             p(h4('Por el otro, recoge información sobre su actividad sexual y conocimiento/uso de métodos de anticoncepción, conocimiento y prácticas preventivas en torno a las infecciones de transmisión sexual, y embarazos y partos.'))
+             #HACER DE NUEVO
+             p(h4('Encuesta de Salud Sexual y Reproductiva del Ministerio de Salud.')),
+             p(h4("Año: 2013")),
+             a(h4(href="https://www.indec.gov.ar/bases-de-datos.asp?solapa=2","Link")),
+             p(h4('Muestra: 5092 mujeres entre 13 a 49 años de centros urbanos de 2.000 o más habitantes a nivel nacional.')),
+             p(h4('Datos demográficos (edad, tipo de hogar y características de la vivienda, máximo nivel educativo, situación conyugal, situación laboral, etc.) y sobre su actividad sexual y conocimiento/uso de métodos de anticoncepción, conocimiento y prácticas preventivas en torno a las infecciones de transmisión sexual, y embarazos y partos.'))
              ),
     tabPanel(strong('Preguntas'),
              p(h4("En base a los datos que proporcionaba esta encuesta quise trabajar alrededor de las imágenes de género existentes sobre de la maternidad. Culturalmente, relacionamos la situación de un embarazo no deseado a adolescentes que presumiblemente no se cuidaron, y no tienen los recursos económicos para criar un hijo.")),
@@ -65,21 +66,48 @@ ui=fluidPage (
                           ),
                           tabPanel('Clase',
                                    h2(strong("¿Los embarazos no deseados son solo una problemática de mujeres pobres?")),
-                                   p(h2("Para responder esta pregunta, clasifiqué el sector económico en base a el máximo nivel educativo alcanzado por las mujeres (esto implicó dejar de lado a las adolescentes). De educación secundaria completa para abajo clasifiqué en Populares, y el resto Medio/Alto.")),
-                                   p(h2("Después, creé una tasa de embarazos no deseados para cada grupo.")),
+                                   p("Para responder esta pregunta, clasifiqué el sector económico en base a el máximo nivel educativo alcanzado por las mujeres (esto implicó dejar de lado a las adolescentes). De educación secundaria completa para abajo clasifiqué en Populares, y el resto Medio/Alto."),
+                                   p("Después, creé una tasa de embarazos no deseados para cada grupo."),
                                    plotOutput('grafClase')                                   #tableOutput('tablaClase'),
                           ),
                           tabPanel('Uso de anticonceptivos',
                             h2(strong("¿Los embarazos no deseados son solo resultado de no tomar medidas anticonceptivas?")),
-                            p(h2()),
-                            plotOutput('grafusoA')
+                            p("A las mujeres se les preguntó directamente sobre el uso de anticonceptivos en el momento que quedaron embarazadas. Entonces, creé las variables en base a esa pregunta."),
+                            plotOutput('grafusoA'),
+                            p("Si bien más de la mitad respondió que no estaba usando anticonceptivos, casi un 43%, osea, 326 mujeres respondieron que el anticonceptivo falló y tuvieron un END.")
                             ),
                           tabPanel('Religión',
-                                   p(h2()),
+                                   p(h2("¿La valoración cultural de la familia tradicional evita los embarazos no deseados?")),
+                                   p("Para responder esta pregunta, usé la variable religión. Presumiblemente, las mujeres que afirman que son religiosas (sobre todo las católicas y evangélicas), son parte de grupos culturales con una valoración tradicional de familia."),
                                    plotOutput('grafRelig'),
-                                   plotOutput('grafRelig1')
+                                   p("Al tomar únicamente la clasficiación atea/religiosa, las mujeres ateas son un 9% más propensas a tener un END que las mujeres religiosas. Pero al incorporar religiones:"),
+                                   plotOutput('grafRelig1'),
+                                   p("Vemos que las mujeres evangélicas tienen una tasa bastante parecida de END que las mujeres ateas. Si bien las mujeres católicas siguen teniendo una menor tasa de END, esta se reduce a un 8% de diferencia con las mujeres ateas.")
                           )
-             ))
+             )),
+    tabPanel(strong('Conclusiones'),
+             br(),
+             h4(p("-La mayor parte de las mujeres de la muestra que tuvieron un END no eran adolescentes, tenían entre 20 y 39 años.")),
+             h4(p("-Las mujeres de sectores bajos tienen una tasa de embarazos muy similar a las mujeres de sectores altos. No hay una diferencia sustancial del deseo de tener hijxs entre sectores sociales.")),
+             h4(p("-Aunque predominan los casos donde hubo END por no utilizar anticonceptivos, un número importante de mujeres quedaron embarazadas aún usando anticonceptivos. Es decir, estos últimos pueden fallar, y bastante.")),
+             h4(p("-Las mujeres que pertenecen a grupos que tienen una valoración tradicional de la familia, aún así tienen una tasa bastante relevante de END. Si bien es menor a la de las mujeres ateas, en el caso de las evangélicas no lo es por tanta diferencia. Incluso, tienen una tasa similar a las mujeres según clasificación por sectores socioeconómicos. Por lo que no puede hablarse de que los ideales subjetivos de maternidad de las mujeres se correspondan necesariamente con los de su grupo de pertenencia."))),
+    tabPanel(strong('Anexo tablas'),
+             navlistPanel('Tablas de:',
+                          tabPanel('Edad',
+                                   br(),
+                                   tableOutput('tablaEdad')),
+                          tabPanel('Sector',
+                                   br(),
+                                   tableOutput('tablaClase')),
+                          tabPanel('Religión',
+                                   br(),
+                                   p("Clasificación según si eran ateas o religiosas:"),
+                                   tableOutput('tablaRelig'),
+                                   br(),
+                                   p("Clasificación según religiones específicas y ateas:"),
+                                   tableOutput('tablaRelig1'))
+                          )
+             )
     )
  
   )
@@ -127,8 +155,9 @@ server=function(input,output){
   
   output$grafusoA=renderPlot({
     
-    graf<- ggplot(END_UA, aes(x= Cat,y= Tasa))+geom_bar(stat="identity",fill="salmon3")
-    graf <- graf + scale_y_continuous(labels = function(x) paste0(x, "%"))+geom_label(aes(x = Cat, y = Tasa, label = paste0(round(Tasa, 0),"%")),
+    graf<- ggplot(END_UA, aes(x= Cat,y= Tasa))+geom_bar(stat="identity",fill="salmon3",width=0.7)
+    graf <- graf + scale_y_continuous(labels = function(x) paste0(x, "%"))
+    graf <- graf + geom_label(aes(x = Cat, y = Tasa, label = paste0(round(Tasa,2),"%")),
                             hjust = 0.5, 
                             vjust = 1, 
                             colour = "white", 
@@ -142,7 +171,7 @@ server=function(input,output){
   
   output$grafRelig=renderPlot({
     
-ggplot(END_RELIG, aes(x=Categoria, y=Tasa))+geom_bar(stat="identity") + scale_y_continuous(labels = function(x) paste0(x, "%"))+geom_label(aes(x = Categoria, y = Tasa, label = paste0(round(Tasa, 0),"%")),
+ggplot(END_RELIG, aes(x=Categoria, y=Tasa))+geom_bar(stat="identity",fill="salmon3",width=0.7) + scale_y_continuous(labels = function(x) paste0(x, "%"))+geom_label(aes(x = Categoria, y = Tasa, label = paste0(round(Tasa, 0),"%")),
                                                                                                                                            hjust = 0.5, 
                                                                                                                                            vjust = 1, 
                                                                                                                                            colour = "white", 
@@ -155,9 +184,9 @@ ggplot(END_RELIG, aes(x=Categoria, y=Tasa))+geom_bar(stat="identity") + scale_y_
   
   output$grafRelig1=renderPlot({
     
-grel1<-ggplot(END_CRELIG, aes(x=reorder(religion,-tasa),y=tasa))+geom_bar(stat='identity')
+grel1<-ggplot(END_CRELIG, aes(x=reorder(religion,-tasa),y=tasa))+geom_bar(stat='identity',fill="salmon3",width=0.7)
 grel1<-grel1+scale_y_continuous(labels = function(x) paste0(x, "%"))
-grel1<- grel1+geom_label(aes(x = religion, y = tasa, label = paste0(round(tasa, 0),"%")),
+grel1<- grel1+geom_label(aes(x = religion, y = tasa, label = paste0(round(tasa, 2),"%")),
                          hjust = 0.5, 
                          vjust = 1, 
                          colour = "white", 
@@ -166,13 +195,14 @@ grel1<- grel1+geom_label(aes(x = religion, y = tasa, label = paste0(round(tasa, 
                          size = 6)
 grel1
   })
-#  output$tablaEdad=renderTable({END_EDAD})
-#  output$tablaClase=renderTable({END_SECTOR})
-
+  output$tablaEdad=renderTable({END_EDAD})
+  output$tablaClase=renderTable({END_SECTOR})
+  output$tablaRelig=renderTable({END_RELIG})
+  output$tablaRelig1=renderTable({END_CRELIG})
+  
   
 }
 
 
-  shinyApp(ui = ui, server = server)
-  
+    shinyApp(ui = ui, server = server)
   
